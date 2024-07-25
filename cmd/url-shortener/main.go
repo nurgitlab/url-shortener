@@ -35,12 +35,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = storage.SaveURL("yandex.com", "ya")
-	if err != nil {
-		log.Error("error saving url", sl.Err(err))
-		os.Exit(1)
-	}
-	log.Info("saved url")
+	//err = storage.SaveURL("yandex.kz", "ya1")
+	//if err != nil {
+	//	log.Error("error saving url", sl.Err(err))
+	//	os.Exit(1)
+	//}
+	//log.Info("saved url")
+
+	//resURL, err := storage.GetURL("ya")
+	//fmt.Println(resURL)
+
+	//err = storage.DeleteURL("ya1")
+	//log.Error("error deleting url", sl.Err(err))
 
 	_ = storage
 

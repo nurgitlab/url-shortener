@@ -2,8 +2,10 @@ package postgresql
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	_ "github.com/lib/pq"
+	"url-shortener/internal/lib/logger/sl"
 )
 
 type Storage struct {
@@ -62,6 +64,49 @@ func (s *Storage) SaveURL(urlToSave string, alias string) error {
 	_, err = stmt.Exec(urlToSave, alias)
 
 	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
+
+func (s *Storage) GetURL(alias string) (string, error) {
+	const op = "storage.postgresql.GetURL"
+
+	stmt, err := s.db.Prepare("SELECT url FROM url WHERE alias = $1")
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	var resURL string
+	err = stmt.QueryRow(alias).Scan(&resURL)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", fmt.Errorf("%s: %w", op, sl.Err(err))
+	}
+
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	return resURL, nil
+}
+
+func (s *Storage) DeleteURL(alias string) error {
+	const op = "storage.postgresql.DeleteURL"
+
+	stmt, err := s.db.Prepare("DELETE FROM url WHERE alias = $1")
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	var resURL string
+	err = stmt.QueryRow(alias).Scan(&resURL)
+	if errors.Is(err, sql.ErrNoRows) {
+		fmt.Println("alias not found")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if _, err := stmt.Exec(&alias); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
