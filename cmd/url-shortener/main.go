@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"url-shortener/internal/config"
+	"url-shortener/internal/http-server/handlers/redirect"
+	deleteURL "url-shortener/internal/http-server/handlers/url/delete"
 	"url-shortener/internal/http-server/handlers/url/save"
 	mwLogger "url-shortener/internal/http-server/middleware/logger"
 	"url-shortener/internal/lib/logger/handlers/slogpretty"
@@ -51,7 +53,7 @@ func main() {
 	//resURL, err := storage.GetURL("ya")
 	//fmt.Println(resURL)
 
-	//err = storage.DeleteURL("ya1")
+	err = storage.DeleteURL("htfhbgtjgi")
 	//log.Error("error deleting url", sl.Err(err))
 
 	_ = storage
@@ -65,7 +67,8 @@ func main() {
 	router.Use(middleware.URLFormat)
 
 	router.Post("/url", save.New(log, storage, storage))
-
+	router.Get("/redirect/{alias}", redirect.New(log, storage))
+	router.Delete("/delete", deleteURL.New(log, storage))
 	log.Info("starting server", slog.String("env", cfg.HTTPServer.Address))
 
 	srv := &http.Server{

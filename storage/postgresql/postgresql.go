@@ -95,20 +95,19 @@ func (s *Storage) DeleteURL(alias string) error {
 	const op = "storage.postgresql.DeleteURL"
 
 	stmt, err := s.db.Prepare("DELETE FROM url WHERE alias = $1")
+
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	var resURL string
-	err = stmt.QueryRow(alias).Scan(&resURL)
+	if _, err := stmt.Exec(alias); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = stmt.QueryRow(alias).Scan(&alias)
 	if errors.Is(err, sql.ErrNoRows) {
-		fmt.Println("alias not found")
-		return fmt.Errorf("%s: %w", op, err)
+		return nil
 	}
 
-	if _, err := stmt.Exec(&alias); err != nil {
-		return fmt.Errorf("%s: %w", op, err)
-	}
-
-	return nil
+	return fmt.Errorf("%s: %w", op, sl.Err(err))
 }

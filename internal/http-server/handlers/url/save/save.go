@@ -13,10 +13,12 @@ import (
 	"url-shortener/storage"
 )
 
+//go:generate go run github.com/vektra/mockery/v2@latest --name=URLSaver
 type URLSaver interface {
 	SaveURL(url string, alias string) error
 }
 
+//go:generate go run github.com/vektra/mockery/v3@latest --name=URLGetter
 type URLGetter interface {
 	GetURL(url string) (string, error)
 }
