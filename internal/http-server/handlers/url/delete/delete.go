@@ -1,6 +1,7 @@
 package deleteURL
 
 import (
+	"fmt"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
@@ -56,9 +57,13 @@ func New(log *slog.Logger, urlDeleter URLDeleter) http.HandlerFunc {
 
 		err = urlDeleter.DeleteURL(alias)
 
+		fmt.Println("err", err)
+
 		if err != nil {
 			log.Error("failed delete url", sl.Err(err))
 			render.JSON(writer, request, response.Error("failed to delete"))
+
+			return
 		}
 
 		log.Info("url deleted", sl.Err(err))

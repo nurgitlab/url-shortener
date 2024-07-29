@@ -13,6 +13,7 @@ import (
 	deleteURL "url-shortener/internal/http-server/handlers/url/delete"
 	"url-shortener/internal/http-server/handlers/url/save"
 	mwLogger "url-shortener/internal/http-server/middleware/logger"
+	"url-shortener/internal/http-server/middleware/my_auth"
 	"url-shortener/internal/lib/logger/handlers/slogpretty"
 	"url-shortener/internal/lib/logger/sl"
 	"url-shortener/storage/postgresql"
@@ -53,7 +54,7 @@ func main() {
 	//resURL, err := storage.GetURL("ya")
 	//fmt.Println(resURL)
 
-	err = storage.DeleteURL("htfhbgtjgi")
+	//err = storage.DeleteURL("htfhbgtjgi")
 	//log.Error("error deleting url", sl.Err(err))
 
 	_ = storage
@@ -66,9 +67,19 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	router.Post("/url", save.New(log, storage, storage))
+	fmt.Println(cfg.HTTPServer.User)
+	fmt.Println(cfg.HTTPServer.Password)
+
+	router.Route("/url", func(r chi.Router) {
+		r.Use(my_auth.BasicAuth("url-shortener", map[string]string{
+			cfg.HTTPServer.User: cfg.HTTPServer.Password,
+		}))
+
+		r.Post("/", save.New(log, storage, storage))
+		r.Delete("/delete", deleteURL.New(log, storage))
+	})
+
 	router.Get("/redirect/{alias}", redirect.New(log, storage))
-	router.Delete("/delete", deleteURL.New(log, storage))
 	log.Info("starting server", slog.String("env", cfg.HTTPServer.Address))
 
 	srv := &http.Server{
